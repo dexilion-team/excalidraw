@@ -1,0 +1,16 @@
+name: Visual Regression Tests
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run visual regression tests
+        run: |
+          npx @lastest/runner@latest trigger \
+            --repo "dexilion-team/excalidraw" \
+            --server "${{ secrets.LASTEST_SERVER_URL }}" \
+            --token "${{ secrets.LASTEST_RUNNER_TOKEN }}"

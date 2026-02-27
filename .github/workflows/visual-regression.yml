@@ -8,9 +8,60 @@ jobs:
   visual-regression:
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for Vercel deployment
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️ VERCEL_TOKEN or VERCEL_PROJECT_ID not configured, skipping"
+            exit 0
+          fi
+
+          COMMIT_SHA="${{ github.event.pull_request.head.sha }}"
+          BRANCH="${{ github.head_ref }}"
+          MAX_ATTEMPTS=10
+          SLEEP_SECONDS=30
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i/$MAX_ATTEMPTS: checking for Vercel deployment..."
+
+            # Try by commit SHA first
+            RESPONSE=$(curl -s "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&meta-githubCommitSha=${COMMIT_SHA}&state=READY" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}")
+
+            URL=$(echo "$RESPONSE" | jq -r '.deployments[0].meta.branchAlias // empty')
+
+            # Fallback: try by branch name
+            if [ -z "$URL" ]; then
+              RESPONSE=$(curl -s "https://api.vercel.com/v6/deployments?projectId=${VERCEL_PROJECT_ID}&meta-githubCommitRef=${BRANCH}&state=READY" \
+                -H "Authorization: Bearer ${VERCEL_TOKEN}")
+              URL=$(echo "$RESPONSE" | jq -r '.deployments[0].meta.branchAlias // empty')
+            fi
+
+            if [ -n "$URL" ]; then
+              echo "url=https://${URL}" >> $GITHUB_OUTPUT
+              echo "skip=false" >> $GITHUB_OUTPUT
+              echo "✅ Found Vercel deployment: https://${URL}"
+              exit 0
+            fi
+
+            if [ $i -lt $MAX_ATTEMPTS ]; then
+              echo "No ready deployment yet, waiting ${SLEEP_SECONDS}s..."
+              sleep $SLEEP_SECONDS
+            fi
+          done
+
+          echo "skip=true" >> $GITHUB_OUTPUT
+          echo "⚠️ No Vercel deployment found after ${MAX_ATTEMPTS} attempts, skipping visual regression"
+
       - name: Run visual regression tests
+        if: steps.vercel.outputs.skip != 'true'
         run: |
           npx @lastest/runner@latest trigger \
             --repo "dexilion-team/excalidraw" \
             --server "${{ secrets.LASTEST_SERVER_URL }}" \
-            --token "${{ secrets.LASTEST_RUNNER_TOKEN }}"
+            --token "${{ secrets.LASTEST_RUNNER_TOKEN }}" \
+            --target-url "${{ steps.vercel.outputs.url }}"

@@ -1,3 +1,4 @@
+# Test: verify Vercel baseURL resolution
 name: Visual Regression Tests
 
 on:

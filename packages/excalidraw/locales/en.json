@@ -3,6 +3,10 @@
     "paste": "Paste",
     "pasteAsPlaintext": "Paste as plaintext",
     "pasteCharts": "Paste charts",
+    "chartType_bar": "Bar chart",
+    "chartType_line": "Line chart",
+    "chartType_radar": "Radar chart",
+    "chartType_plaintext": "Plain text",
     "selectAll": "Select all",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
@@ -173,7 +177,9 @@
     "tab": "Tab",
     "shapeSwitch": "Switch shape",
     "preferences": "Preferences",
-    "preferences_toolLock": "Tool lock"
+    "preferences_toolLock": "Tool lock",
+    "arrowBinding": "Arrow binding",
+    "midpointSnapping": "Snap to midpoints"
   },
   "elementLink": {
     "title": "Link to object",
@@ -618,7 +624,8 @@
     "syntax": "Mermaid Syntax",
     "preview": "Preview",
     "label": "Mermaid",
-    "inputPlaceholder": "Write Mermaid diagram defintion here..."
+    "inputPlaceholder": "Write Mermaid diagram defintion here...",
+    "autoFixAvailable": "Auto-fix is available"
   },
   "ttd": {
     "error": "Error!"

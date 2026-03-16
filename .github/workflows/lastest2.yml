@@ -43,6 +43,8 @@ jobs:
           sleep 3
 
           npx @lastest/runner trigger \
+            -t "$LASTEST2_TOKEN" \
+            -s "$LASTEST2_URL" \
             --repo "dexilion-team/excalidraw" \
             --branch "${{ github.head_ref || github.ref_name }}" \
             --commit "${{ github.sha }}" \
